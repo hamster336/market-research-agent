@@ -1,6 +1,9 @@
+# does search work? and which backend?
+
 from ddgs import DDGS
 
 queries = ["food delivery market Nepal", "Foodmandu Nepal", "python"]
+# Using 3 different types of queries: broad one, specific one and a control
 
 for q in queries:
     for backend in ["auto", "duckduckgo", "bing", "brave"]:

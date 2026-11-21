@@ -1,3 +1,9 @@
+# checks whether the LLM is working or not: 
+# 1- valid API key
+# 2- properly installed google-genai package
+# 3- model name exists and is availaible from the key
+# 4- search reaches google
+
 import os
 from dotenv import load_dotenv
 
