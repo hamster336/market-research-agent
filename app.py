@@ -1,48 +1,88 @@
+from urllib.parse import urlparse
+
 import streamlit as st
 
 from agents import orchestrator
 from llm import LLMError
 from models import WorkflowState
+from report import build_pdf, pdf_filename
 
-st.set_page_config(page_title="InsightCrew", page_icon="🔍", layout="centered")
-st.title("🔍 InsightCrew")
-st.caption("Multi-agent market research briefs in minutes.")
+APP_NAME = "InsightCrew"
+TAGLINE = "Four AI agents that research, write and review your market brief."
+EXAMPLES = [
+    "Analyze the food delivery market in Nepal",
+    "Tesla",
+    "Fintech market in Nepal",
+]
+
+st.markdown(
+    """
+<style>
+.block-container {padding-top: 2.2rem; max-width: 860px;}
+.hero h1 {
+    font-size: 2.7rem; font-weight: 800; margin: 0; letter-spacing: -0.02em;
+    background: linear-gradient(90deg, #6C8CFF, #B07CFF);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+}
+.hero p {opacity: .75; margin: .3rem 0 1rem 0; font-size: 1.05rem;}
+.crew {display: flex; flex-wrap: wrap; gap: .5rem; margin-bottom: 1.2rem;}
+.pill {
+    border: 1px solid rgba(128,128,128,.35); border-radius: 999px;
+    padding: .2rem .8rem; font-size: .82rem;
+}
+</style>
+""",
+    unsafe_allow_html=True,
+)
+
+st.markdown(
+    f'<div class="hero"><h1>🧭 {APP_NAME}</h1><p>{TAGLINE}</p></div>',
+    unsafe_allow_html=True,
+)
+
+with st.sidebar:
+    st.header("How it works")
+    st.markdown(
+        "1. **Orchestrator** checks what you entered and starts the workflow\n"
+        "2. **Researcher** searches the web and extracts facts with sources\n"
+        "3. **Analyst** writes a short brief from those facts only\n"
+        "4. **Critic** reviews it and can request one revision"
+    )
+    st.divider()
+    st.caption(
+        "Briefs are generated from web search snippets. Anything the evidence "
+        "doesn't cover is listed under *Missing information*."
+    )
 
 
-def brief_to_markdown(state: WorkflowState) -> str:
-    b = state.final_brief
-    origin = {"web": "live web search", "sample": "illustrative sample data"}.get(
-        state.data_source, "no data found"
-    )
-    lines = [
-        f"# Market Research Brief: {state.query}",
-        "",
-        f"_Data source: {origin}_",
-        "",
-        "## Summary",
-        b.summary,
-        "",
-        "## Competitors",
-    ]
-    lines += [f"- **{c.name}**: {c.description}" for c in b.competitors] or [
-        "- None identified"
-    ]
-    lines += ["", "## Key observations"] + (
-        [f"- {o}" for o in b.key_observations] or ["- None available"]
-    )
-    lines += ["", "## Sources"] + (
-        [f"- {s}" for s in b.sources] or ["- None available"]
-    )
-    lines += ["", "## Missing information"] + (
-        [f"- {m}" for m in b.missing_information] or ["- None reported"]
-    )
-    return "\n".join(lines)
+# ---------------------------------------------------------------- rendering
+def source_link(url: str) -> str:
+    if url.startswith("http"):
+        host = urlparse(url).netloc.removeprefix("www.")
+        return f"[{host}]({url})"
+    return url
 
 
 def render(state: WorkflowState) -> None:
-    st.caption(f"Interpreted as: {state.scope.interpretation}")
-
     b = state.final_brief
+    findings = state.findings.findings
+    n_sources = len({f.source_url for f in findings})
+    origin = {"web": "Live web", "sample": "Sample data"}.get(state.data_source, "None")
+    if state.feedback is None:
+        verdict = "Skipped"
+    else:
+        verdict = "Approved" if state.feedback.approved else "Revised"
+
+    st.divider()
+    st.header(state.scope.name if state.scope else state.query)
+    if state.scope:
+        st.caption(f"Interpreted as: {state.scope.interpretation}")
+
+    c1, c2, c3, c4 = st.columns(4)
+    c1.metric("Facts gathered", len(findings))
+    c2.metric("Sources", n_sources)
+    c3.metric("Data", origin)
+    c4.metric("Critic", verdict)
 
     if state.data_source == "sample":
         st.warning(
@@ -54,12 +94,16 @@ def render(state: WorkflowState) -> None:
         )
 
     st.subheader("Summary")
-    st.write(b.summary)
+    with st.container(border=True):
+        st.write(b.summary)
 
     st.subheader("Competitors")
     if b.competitors:
-        for c in b.competitors:
-            st.markdown(f"**{c.name}**: {c.description}")
+        cols = st.columns(len(b.competitors))
+        for col, comp in zip(cols, b.competitors):
+            with col.container(border=True):
+                st.markdown(f"**{comp.name}**")
+                st.write(comp.description)
     else:
         st.write("No competitors identified in the evidence.")
 
@@ -73,7 +117,7 @@ def render(state: WorkflowState) -> None:
     st.subheader("Sources")
     if b.sources:
         for s in b.sources:
-            st.markdown(f"- {s}")
+            st.markdown(f"- {source_link(s)}")
     else:
         st.write("No sources available.")
 
@@ -85,28 +129,22 @@ def render(state: WorkflowState) -> None:
         st.write("No missing information reported.")
 
     st.download_button(
-        "Download brief (Markdown)",
-        brief_to_markdown(state),
-        file_name="brief.md",
-        mime="text/markdown",
+        "Download brief (PDF)",
+        data=build_pdf(state),
+        file_name=pdf_filename(state),
+        mime="application/pdf",
+        type="primary",
     )
 
     with st.expander("How this brief was made"):
-        findings = state.findings.findings
-        n_facts = len(findings)
-        n_sources = len({f.source_url for f in findings})
-        origin = {"web": "live web search", "sample": "illustrative sample data"}.get(
-            state.data_source, "no data found"
-        )
-
+        if state.scope:
+            st.markdown(
+                f"**1. Orchestrator:** interpreted the input as *{state.scope.interpretation}* "
+                f"({state.scope.kind})."
+            )
         st.markdown(
-            f"**1. Orchestrator:** interpreted the input as *{state.scope.interpretation}* "
-            f"({state.scope.kind})."
+            f"**2. Researcher:** collected {len(findings)} facts from {n_sources} sources ({origin.lower()})."
         )
-        st.markdown(
-            f"**2. Researcher:** collected {n_facts} facts from {n_sources} sources ({origin})."
-        )
-
         if not findings:
             st.markdown("**3. Analyst:** no usable evidence, so no draft was written.")
         else:
@@ -126,12 +164,12 @@ def render(state: WorkflowState) -> None:
                 )
 
 
-# ---- session state defaults ----
+# ---------------------------------------------------------------- input
 for key, default in {
     "running": False,
     "pending_query": "",
     "state": None,
-    "error": None,  # (kind, message) or None
+    "error": None,
 }.items():
     st.session_state.setdefault(key, default)
 
@@ -140,25 +178,52 @@ def start_research():
     """Runs when the form is submitted (button click or Enter)."""
     st.session_state.running = True
     st.session_state.pending_query = st.session_state.query_input
-    st.session_state.state = None  # hide the previous brief while running
+    st.session_state.state = None
     st.session_state.error = None
 
 
-with st.form("research_form"):
+def run_example(text: str):
+    st.session_state.query_input = text
+    start_research()
+
+
+if st.session_state.running:
+    # Locked copy shown while the crew is working: text visible, not editable.
     st.text_input(
         "Company or industry",
-        key="query_input",
-        placeholder="e.g. Analyze the food delivery market in Nepal",
-        disabled=st.session_state.running,
+        value=st.session_state.pending_query,
+        key="query_locked",
+        disabled=True,
     )
-    st.form_submit_button(
-        "Start research",
-        type="primary",
+    st.button("Start research", type="primary", disabled=True)
+else:
+    # Bring the last query back into the editable box after a run.
+    st.session_state.setdefault("query_input", st.session_state.pending_query)
+    with st.form("research_form", border=False):
+        st.text_input(
+            "Company or industry",
+            key="query_input",
+            placeholder="e.g. Analyze the food delivery market in Nepal",
+        )
+        st.form_submit_button(
+            "Start research",
+            type="primary",
+            on_click=start_research,
+        )
+
+st.caption("Or try an example:")
+ex_cols = st.columns(len(EXAMPLES))
+for col, example in zip(ex_cols, EXAMPLES):
+    col.button(
+        example,
+        key=f"example_{example}",
+        on_click=run_example,
+        args=(example,),
         disabled=st.session_state.running,
-        on_click=start_research,
+        use_container_width=True,
     )
 
-# ---- run the workflow (the form is already disabled at this point) ----
+# ---------------------------------------------------------------- run
 if st.session_state.running:
     query = st.session_state.pending_query.strip()
     try:
@@ -168,7 +233,7 @@ if st.session_state.running:
                 "Please enter a company or industry first.",
             )
         else:
-            with st.status("Running the research workflow...", expanded=True) as status:
+            with st.status("Your crew is working...", expanded=True) as status:
                 state = orchestrator(
                     query, on_step=lambda name, s: st.write(f"✅ {name}")
                 )
@@ -185,9 +250,9 @@ if st.session_state.running:
         st.session_state.error = ("error", f"Something went wrong: {e}")
     finally:
         st.session_state.running = False
-    st.rerun()  # re-enable the form and show the result
+    st.rerun()
 
-# ---- show errors / results ----
+# ---------------------------------------------------------------- output
 if st.session_state.error:
     kind, message = st.session_state.error
     (st.warning if kind == "warning" else st.error)(message)
@@ -195,6 +260,6 @@ if st.session_state.error:
 if st.session_state.state:
     s = st.session_state.state
     if s.stopped_reason:
-        st.info(s.stopped_reason)
+        st.info(s.stopped_reason, icon="🧭")
     else:
         render(s)

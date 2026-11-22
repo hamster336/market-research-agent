@@ -49,6 +49,7 @@ Only use names that appear in the search results above. If none appear, return a
 
     try:
         picked = generate_structured(prompt, CompetitorNames, system=RESEARCHER_SYSTEM)
+        print("Competitor picker returned:", picked.names)
     except LLMError:
         return results  # skip the second pass, keep what we have
 
@@ -78,6 +79,10 @@ def researcher(state: WorkflowState) -> WorkflowState:
             gaps=[
                 "Live web search returned no results, and no sample data applies to this topic."
             ],
+        )
+        print(
+            "Findings mentioning Uber:",
+            [f.fact for f in found.findings if "uber" in f.fact.lower()],
         )
         return state
 
@@ -305,10 +310,13 @@ Rules:
 3. Do NOT reject a name just because you don't recognise it. If it plausibly looks
    like a company or brand (e.g. a local business), classify it as "company" and
    let the research step find out.
-4. interpretation: one short phrase, e.g. "Amazon.com Inc. (global e-commerce and cloud company)".
-5. search_query: an unambiguous web search query for the business reading, e.g.
+4. name: the short, clean name of the company or industry, without words like
+   "analyze", "company" or "market research". Examples: "Amazon", "Apple",
+   "Food Delivery Market in Nepal". For "not_business", repeat the input.
+5. interpretation: one short phrase, e.g. "Amazon.com Inc. (global e-commerce and cloud company)".
+6. search_query: an unambiguous web search query for the business reading, e.g.
    "Amazon.com Inc. company". For "not_business", repeat the input.
-6. message: for "not_business" only, one or two sentences saying what the input
+7. message: for "not_business" only, one or two sentences saying what the input
    is and asking for a company or industry, e.g. "'Nile' is a river in
    northeastern Africa, not a company or industry. Please enter a company or
    industry to research." If it is gibberish or unknown, write: "No company or

@@ -52,6 +52,7 @@ class WorkflowState(BaseModel):
 
 class QueryCheck(BaseModel):
     kind: str            # exactly one of: "company", "industry", "not_business"
+    name: str
     interpretation: str  # short description of what the input refers to
     search_query: str    # refined, unambiguous web search query
     message: str         # for "not_business": short message to the user; otherwise empty
