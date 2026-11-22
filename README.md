@@ -14,12 +14,12 @@ Input -> Orchestrator -> Researcher -> Analyst (draft) -> Critic
                                                      Final brief + PDF
 ```
 
-| Role | What it does |
-|---|---|
+| Role         | What it does                                                                                                                                                             |
+| ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | Orchestrator | Receives the query, checks whether it names a company or industry (for example "Amazon" is treated as the company, "Nile" is rejected as a river), and runs the workflow |
-| Researcher | Searches the web from several angles, finds the main competitors, and extracts facts with their source URLs |
-| Analyst | Writes the brief using only the researcher's findings |
-| Critic | Reviews the draft against the evidence and may request one revision |
+| Researcher   | Searches the web from several angles, finds the main competitors, and extracts facts with their source URLs                                                              |
+| Analyst      | Writes the brief using only the researcher's findings                                                                                                                    |
+| Critic       | Reviews the draft against the evidence and may request one revision                                                                                                      |
 
 All roles use the same language model (Google Gemini). Data moves between roles as Pydantic models (see `models.py`), carried in a single `WorkflowState` object.
 
@@ -38,19 +38,23 @@ The brief can be downloaded as a PDF.
 Requirements: Python 3.10 or newer and a free Gemini API key from [Google AI Studio](https://aistudio.google.com/).
 
 1. Clone the repository and enter the folder:
+
    ```bash
    git clone <your-repository-url>
    cd <repository-folder>
    ```
 
 2. Create and activate a virtual environment:
+
    ```bash
    python -m venv .venv
    ```
+
    - Windows: `.venv\Scripts\activate`
    - macOS / Linux: `source .venv/bin/activate`
 
 3. Install dependencies:
+
    ```bash
    pip install -r requirements.txt
    ```
@@ -71,11 +75,11 @@ Open http://localhost:8501, enter a company or industry, and click **Start resea
 
 ## Configuration
 
-| Variable | Required | Description |
-|---|---|---|
-| `GEMINI_API_KEY` | Yes | Your Gemini API key |
-| `GEMINI_MODEL` | No | Main model name (set a current model if the default is retired) |
-| `GEMINI_FALLBACK_MODEL` | No | Used if the main model stays unavailable |
+| Variable                | Required | Description                                                     |
+| ----------------------- | -------- | --------------------------------------------------------------- |
+| `GEMINI_API_KEY`        | Yes      | Your Gemini API key                                             |
+| `GEMINI_MODEL`          | No       | Main model name (set a current model if the default is retired) |
+| `GEMINI_FALLBACK_MODEL` | No       | Used if the main model stays unavailable                        |
 
 Model names change over time. If you see a "model not found" error, set `GEMINI_MODEL` to a current model from Google AI Studio.
 
@@ -110,4 +114,8 @@ sample_output/  Example brief
 
 ## Sample output
 
-See [`sample_output/<your-sample-file>.pdf`](sample_output/) (replace with your actual file name).
+[`sample_output/daraz-nepal-market-research-brief.pdf`](sample_output/)
+[`sample_output/ikea-market-research-brief.pdf`](sample_output/)
+[`sample_output/indrive-market-research-brief.pdf`](sample_output/)
+[`sample_output/meesho-market-research-brief.pdf`](sample_output/)
+[`sample_output/mitsubishi-market-research-brief.pdf`](sample_output/)
