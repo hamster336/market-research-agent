@@ -25,11 +25,15 @@ def _models() -> list[str]:
     return [m for m in (main, fallback) if m]
 
 
-def generate_structured(prompt: str, schema: Type[T], system: Optional[str] = None) -> T:
+def generate_structured(
+    prompt: str, schema: Type[T], system: Optional[str] = None
+) -> T:
     """Call Gemini and return a validated Pydantic object of type `schema`."""
     api_key = os.getenv("GEMINI_API_KEY")
     if not api_key:
-        raise LLMError("GEMINI_API_KEY is not set. Copy .env.example to .env and add your key.")
+        raise LLMError(
+            "GEMINI_API_KEY is not set. Copy .env.example to .env and add your key."
+        )
 
     client = genai.Client(api_key=api_key)
     config = types.GenerateContentConfig(

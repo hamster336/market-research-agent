@@ -1,8 +1,8 @@
 from typing import Optional
 from pydantic import BaseModel, Field
 
-
 # ---- Models the LLM fills in (no defaults, so the JSON schema stays simple) ----
+
 
 class Finding(BaseModel):
     fact: str
@@ -34,6 +34,7 @@ class CriticFeedback(BaseModel):
 
 # ---- The object passed between roles ----
 
+
 class WorkflowState(BaseModel):
     query: str
     data_source: str = "web"  # "web" or "sample"
@@ -50,12 +51,14 @@ class WorkflowState(BaseModel):
         """The disambiguated topic if known, otherwise the raw query."""
         return self.scope.interpretation if self.scope else self.query
 
+
 class QueryCheck(BaseModel):
-    kind: str            # exactly one of: "company", "industry", "not_business"
+    kind: str  # exactly one of: "company", "industry", "not_business"
     name: str
     interpretation: str  # short description of what the input refers to
-    search_query: str    # refined, unambiguous web search query
-    message: str         # for "not_business": short message to the user; otherwise empty
+    search_query: str  # refined, unambiguous web search query
+    message: str  # for "not_business": short message to the user; otherwise empty
+
 
 class CompetitorNames(BaseModel):
     names: list[str]  # at most 2

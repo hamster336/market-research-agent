@@ -15,19 +15,19 @@ SAMPLE_RESULTS = [
         "title": "[SAMPLE DATA] Online food delivery overview",
         "url": "sample://illustrative-data",
         "snippet": "ILLUSTRATIVE SAMPLE, NOT VERIFIED: Online food delivery in Nepal is "
-                   "concentrated in Kathmandu Valley and a few other major cities.",
+        "concentrated in Kathmandu Valley and a few other major cities.",
     },
     {
         "title": "[SAMPLE DATA] Competitor landscape",
         "url": "sample://illustrative-data",
         "snippet": "ILLUSTRATIVE SAMPLE, NOT VERIFIED: Foodmandu and Pathao Food are "
-                   "examples of food delivery platforms operating in Nepal.",
+        "examples of food delivery platforms operating in Nepal.",
     },
     {
         "title": "[SAMPLE DATA] Market drivers",
         "url": "sample://illustrative-data",
         "snippet": "ILLUSTRATIVE SAMPLE, NOT VERIFIED: Smartphone adoption and digital "
-                   "payments are commonly cited drivers of delivery growth.",
+        "payments are commonly cited drivers of delivery growth.",
     },
 ]
 
@@ -59,15 +59,24 @@ def search_web(query: str, max_results: int = 6) -> tuple[list[dict], str]:
                 try:
                     raw = DDGS().text(variant, max_results=max_results, backend=backend)
                     results = [
-                        {"title": r.get("title", ""), "url": r.get("href", ""), "snippet": r.get("body", "")}
+                        {
+                            "title": r.get("title", ""),
+                            "url": r.get("href", ""),
+                            "snippet": r.get("body", ""),
+                        }
                         for r in raw
                         if r.get("href")
                     ]
                     if results:
                         return results, "web"
                 except Exception as e:
-                    logger.warning("search failed (query=%r, backend=%s, attempt=%d): %s",
-                                   variant, backend, attempt + 1, e)
+                    logger.warning(
+                        "search failed (query=%r, backend=%s, attempt=%d): %s",
+                        variant,
+                        backend,
+                        attempt + 1,
+                        e,
+                    )
                 if attempt == 0:
                     time.sleep(RETRY_PAUSE)
 
@@ -77,6 +86,7 @@ def search_web(query: str, max_results: int = 6) -> tuple[list[dict], str]:
 
 
 ANGLES = ["", " competitors", " market size and growth"]
+
 
 def search_topic(query: str, per_query: int = 5) -> tuple[list[dict], str]:
     """Search the topic from several angles and merge unique results."""

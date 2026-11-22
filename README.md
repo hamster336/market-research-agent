@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="assets/insightcrew-logo.svg" alt="InsightCrew" width="360">
+</p>
+
 # InsightCrew
 
 InsightCrew is a Streamlit web app that turns a company or industry name into a short market research brief. Four roles (Orchestrator, Researcher, Analyst, Critic) run in sequence and pass structured data to each other.

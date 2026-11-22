@@ -1,3 +1,4 @@
+from pathlib import Path
 from urllib.parse import urlparse
 
 import streamlit as st
@@ -11,9 +12,24 @@ APP_NAME = "InsightCrew"
 TAGLINE = "Four AI agents that research, write and review your market brief."
 EXAMPLES = [
     "Analyze the food delivery market in Nepal",
-    "Tesla",
+    "Apple",
     "Fintech market in Nepal",
 ]
+
+st.set_page_config(page_title=APP_NAME, layout="centered")
+
+ASSETS = Path(__file__).parent / "assets"
+LOGO = ASSETS / "insightcrew-logo-sidebar.svg"
+MARK = ASSETS / "insightcrew-mark.svg"
+
+if LOGO.exists() and MARK.exists():
+    try:
+        try:
+            st.logo(str(LOGO), size="medium", icon_image=str(MARK))
+        except TypeError:
+            st.logo(str(LOGO), icon_image=str(MARK))
+    except Exception:
+        pass
 
 st.markdown(
     """
@@ -24,19 +40,14 @@ st.markdown(
     background: linear-gradient(90deg, #6C8CFF, #B07CFF);
     -webkit-background-clip: text; -webkit-text-fill-color: transparent;
 }
-.hero p {opacity: .75; margin: .3rem 0 1rem 0; font-size: 1.05rem;}
-.crew {display: flex; flex-wrap: wrap; gap: .5rem; margin-bottom: 1.2rem;}
-.pill {
-    border: 1px solid rgba(128,128,128,.35); border-radius: 999px;
-    padding: .2rem .8rem; font-size: .82rem;
-}
+.hero p {opacity: .75; margin: .3rem 0 1.6rem 0; font-size: 1.05rem;}
 </style>
 """,
     unsafe_allow_html=True,
 )
 
 st.markdown(
-    f'<div class="hero"><h1>🧭 {APP_NAME}</h1><p>{TAGLINE}</p></div>',
+    f'<div class="hero"><h1>{APP_NAME}</h1><p>{TAGLINE}</p></div>',
     unsafe_allow_html=True,
 )
 
@@ -188,7 +199,7 @@ def run_example(text: str):
 
 
 if st.session_state.running:
-    # Locked copy shown while the crew is working: text visible, not editable.
+    # Locked copy shown while the crew is working. Makes the text visible but not editable.
     st.text_input(
         "Company or industry",
         value=st.session_state.pending_query,
@@ -197,7 +208,7 @@ if st.session_state.running:
     )
     st.button("Start research", type="primary", disabled=True)
 else:
-    # Bring the last query back into the editable box after a run.
+    # Persist the last query into the editable box after a run.
     st.session_state.setdefault("query_input", st.session_state.pending_query)
     with st.form("research_form", border=False):
         st.text_input(
@@ -234,9 +245,7 @@ if st.session_state.running:
             )
         else:
             with st.status("Your crew is working...", expanded=True) as status:
-                state = orchestrator(
-                    query, on_step=lambda name, s: st.write(f"✅ {name}")
-                )
+                state = orchestrator(query, on_step=lambda name, s: st.write(name))
                 status.update(
                     label="Research complete", state="complete", expanded=False
                 )
@@ -260,6 +269,6 @@ if st.session_state.error:
 if st.session_state.state:
     s = st.session_state.state
     if s.stopped_reason:
-        st.info(s.stopped_reason, icon="🧭")
+        st.info(s.stopped_reason)
     else:
         render(s)
