@@ -49,7 +49,6 @@ Only use names that appear in the search results above. If none appear, return a
 
     try:
         picked = generate_structured(prompt, CompetitorNames, system=RESEARCHER_SYSTEM)
-        print("Competitor picker returned:", picked.names)
     except LLMError:
         return results  # skip the second pass, keep what we have
 
@@ -79,10 +78,6 @@ def researcher(state: WorkflowState) -> WorkflowState:
             gaps=[
                 "Live web search returned no results, and no sample data applies to this topic."
             ],
-        )
-        print(
-            "Findings mentioning Uber:",
-            [f.fact for f in found.findings if "uber" in f.fact.lower()],
         )
         return state
 

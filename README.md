@@ -118,4 +118,6 @@ sample_output/  Example brief
 [`Ikea`](sample_output/ikea-market-research-brief.pdf)
 [`inDrive`](sample_output/indrive-market-research-brief.pdf)
 [`Meesho`](sample_output/meesho-market-research-brief.pdf)
+[`Fintech Nepal`](sample_output/fintech-market-in-nepal-market-research-brief.pdf)
 [`Mitsubishi`](sample_output/mitsubishi-market-research-brief.pdf)
+ 
