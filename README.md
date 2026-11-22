@@ -114,8 +114,8 @@ sample_output/  Example brief
 
 ## Sample output
 
-[`sample_output/daraz-nepal-market-research-brief.pdf`](sample_output/)
-[`sample_output/ikea-market-research-brief.pdf`](sample_output/)
-[`sample_output/indrive-market-research-brief.pdf`](sample_output/)
-[`sample_output/meesho-market-research-brief.pdf`](sample_output/)
-[`sample_output/mitsubishi-market-research-brief.pdf`](sample_output/)
+[`Daraz Nepal`](sample_output/daraz-nepal-market-research-brief.pdf)
+[`Ikea`](sample_output/ikea-market-research-brief.pdf)
+[`inDrive`](sample_output/indrive-market-research-brief.pdf)
+[`Meesho`](sample_output/meesho-market-research-brief.pdf)
+[`Mitsubishi`](sample_output/mitsubishi-market-research-brief.pdf)
